@@ -1,0 +1,77 @@
+---
+title: "Montgomery County Crash Reporting Analysis"
+author: "Lucy Murray"
+date: "12/20/2022"
+output: html_document
+---
+
+# Packages & Functions
+
+## Load packages and supplemental functions.
+
+```{r}
+# Define packages to be used, install them if not already installed, and open them with library
+packages <- c("readr", "dplyr", "sf", "terra", "spData", "tmap", "leaflet", "ggplot2", "purrr", "rgdal")
+
+uninstalled_pkgs <- packages[!(packages %in% installed.packages()[, "Package"])]
+if (length(uninstalled_pkgs) > 0) install.packages(uninstalled_pkgs)
+invisible(lapply(packages, library, character.only = TRUE))
+
+functions_to_source <- list.files("Functions/", full.names = TRUE)
+walk(functions_to_source, source)
+```
+
+## Define Parameter Values
+
+-   `user` unique to the system user.
+-   `proj_dir` is the the local folder path; update as needed.
+
+```{r}
+user <- Sys.info()[["user"]]
+proj_dir <- paste0("C:/Users/", user, "/Software/Git Local/Working Folder/")
+```
+
+# Importing the Data
+
+## 2022 Montgomery County Crashing Reporting data from [dataMontgomery](https://data.montgomerycountymd.gov/)
+
+-   `062022_dataMontgomery_Crash_Reporting_-_Incidents_Data.csv` is the Comma Separated Value that contains the data being analyzed.
+
+```{r}
+mococrash2022 <- read_csv("062022_dataMontgomery_Crash_Reporting_-_Incidents_Data.csv")
+```
+
+## Montgomery County Zipcode Shapefile from [Montgomery County GIS Data](https://www.montgomerycountymd.gov/gis/data.html)
+
+-   `Zipcodes_Montgomery` is the file name with the following extensions:
+    -   `.shp` is the file that contains the geometry for all features.
+
+    -   `.shx` is the file that indexes the geometry.
+
+    -   `.dbf` is the file that stores feature attributes in a tabular form.
+
+    -   `.prj` is the file that contains information on projection format including the coordinate system and projection information.
+
+    -   `.sbn` and `.sbx`: are the files that are spatial indices of the features.
+
+    -   `.shp.xml`: the file that is the geospatial metadata in XML format, (e.g. ISO 19115 or `XML` format).
+
+The first shapefile that we will open contains the boundary of our study area (or our Area Of Interest or AOI, hence the name aoiBoundary). To import shapefiles we use the sf function st_read(). st_read() requires the file path to the shapefile.
+
+```{r}
+zipcodes_moco <- st_read(
+  paste0(proj_dir, "Zipcodes_Montgomery.shp"))
+st_geometry_type(zipcodes_moco)
+st_bbox(zipcodes_moco)
+```
+
+# Plotting
+
+## Shape boundary only
+
+```{r}
+ggplot() + 
+  geom_sf(data = zipcodes_moco, size = 3, color = "black", fill = "cyan1") + 
+  ggtitle("Zipcodes Montgomery Boundary Plot") + 
+  coord_sf()
+```
